@@ -3,6 +3,7 @@ package com.zxw.tenholescrawler;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -11,18 +12,22 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Date;
 import java.util.SimpleTimeZone;
 
 public class HeadlessBrowserDemo {
     public static void main(String[] args) throws IOException, ParseException {
-        String chromeDriverPath = "/Users/zxw/Desktop/chromedriver_mac_arm64/chromedriver";
+        String chromeDriverPath = "/Users/zhangxunwei/idea-workspace/tenholes-crawler/src/main/resources/chromedriver_mac_arm64/chromedriver";
         System.setProperty("webdriver.chrome.driver", chromeDriverPath);
 
         // 创建了一个 Firefox driver 的实例
         // 注意，其余的代码依赖于接口而非实例
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless", "--window-size=1920,1200","--ignore-certificate-errors", "--silent");
+        options.addArguments("--headless","--ignore-certificate-errors", "--silent");
+        options.addArguments("--window-position=-32000,-32000");
+        options.addArguments("--allowed-ips=*");
+        options.addArguments("--remote-allow-origins=*");
         WebDriver driver = new ChromeDriver(options);
         Date date = new SimpleDateFormat("yyyy-MM-dd").parse("2023-10-01");
 //        driver.manage().addCookie(new Cookie("_csrf-frontend", "ac9afb3957cd8ec94bd2fbb98d7ae221dcaa9656e4b0c9f0e7f00096f9736f84a%3A2%3A%7Bi%3A0%3Bs%3A14%3A%22_csrf-frontend%22%3Bi%3A1%3Bs%3A32%3A%22DOhKO2058KLQoYi3Axaa7HB6dIh-PsPw%22%3B%7D", "/", date));
@@ -37,7 +42,7 @@ public class HeadlessBrowserDemo {
 
         // Google 搜索结果由 JavaScript 动态渲染
         // 等待页面加载完毕，超时时间设为10秒
-        (new WebDriverWait(driver, 4)).until(new ExpectedCondition<Boolean>() {
+        (new WebDriverWait(driver, Duration.ofSeconds(4))).until(new ExpectedCondition<Boolean>() {
             public Boolean apply(WebDriver d) {
 //                return d.getTitle().toLowerCase().startsWith("cheese!");
                 return true;
@@ -47,7 +52,7 @@ public class HeadlessBrowserDemo {
         System.out.println(driver.getPageSource());
 
         File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-        FileUtils.copyFile(screenshot, new File("/Users/zxw/Desktop/screenshot.png"));
+        FileUtils.copyFile(screenshot, new File("/Users/zhangxunwei/Desktop/screenshot.png"));
 
         //关闭浏览器
         driver.quit();

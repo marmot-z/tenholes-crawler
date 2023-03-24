@@ -9,6 +9,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 
 public class Demo2 {
     public static void main(String[] args) throws IOException {
@@ -38,7 +39,7 @@ public class Demo2 {
 
         // Google 搜索结果由 JavaScript 动态渲染
         // 等待页面加载完毕，超时时间设为10秒
-        (new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
+        (new WebDriverWait(driver, Duration.ofSeconds(10))).until(new ExpectedCondition<Boolean>() {
             public Boolean apply(WebDriver d) {
                 return d.getTitle().toLowerCase().startsWith("cheese!");
             }

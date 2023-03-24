@@ -44,21 +44,43 @@
             <version>2.70.0</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.seleniumhq.selenium</groupId>-->
-<!--            <artifactId>selenium-java</artifactId>-->
-<!--            <version>4.8.0</version>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>2.28.0</version>
+            <version>4.8.0</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-chrome-driver -->
         <dependency>
-            <groupId>com.opera</groupId>
-            <artifactId>operadriver</artifactId>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-chrome-driver</artifactId>
+            <version>4.8.1</version>
         </dependency>
+
+        <!--        <dependency>-->
+<!--            <groupId>org.seleniumhq.selenium</groupId>-->
+<!--            <artifactId>selenium-java</artifactId>-->
+<!--            <version>2.28.0</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.opera</groupId>-->
+<!--            <artifactId>operadriver</artifactId>-->
+<!--        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/htmlunit-driver -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>htmlunit-driver</artifactId>
+            <version>4.8.1.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.codeborne/phantomjsdriver -->
+        <dependency>
+            <groupId>com.codeborne</groupId>
+            <artifactId>phantomjsdriver</artifactId>
+            <version>1.5.0</version>
+        </dependency>
+
 
     </dependencies>
 
