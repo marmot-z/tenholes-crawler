@@ -1,10 +1,7 @@
 package com.zxw.tenholescrawler;
 
-import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -14,6 +11,7 @@ import java.time.Duration;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.function.Function;
 
 public class PagePreviewer {
 
@@ -51,18 +49,12 @@ public class PagePreviewer {
         this.webDriver.manage().addCookie(new Cookie("ten_auth1", authToken, "/", cookieExpireDay));
     }
 
-    public String getPagePreview(String pageUrl) {
+    public String getPagePreview(String pageUrl, Function<WebDriver, Boolean> determineCompletedFn) {
         this.webDriver.get(pageUrl);
 
-        // 等待 3 秒等待页面加载
+        // 等待若干秒等待页面加载
         new WebDriverWait(webDriver, Duration.ofSeconds(3))
-                .until(driver -> {
-                    WebElement video = driver.findElement(By.tagName("video"));
-                    String src = video.getDomAttribute("src");
-
-                    // video 的链接存在则说明页面加载完毕
-                    return StringUtils.isNotBlank(src);
-                });
+                .until(driver -> determineCompletedFn.apply(driver));
 
         return webDriver.getPageSource();
     }

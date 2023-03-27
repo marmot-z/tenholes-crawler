@@ -1,21 +1,15 @@
 package com.zxw.tenholescrawler;
 
-import com.beust.ah.A;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.hc.client5.http.async.methods.*;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
-import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.message.StatusLine;
-import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.Timeout;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebElement;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,11 +20,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 public class PageDownloadTask {
 
+    /**
+     * 页面 previewer，用于加载完整的页面
+     */
     private PagePreviewer previewer;
+    /**
+     * 页面下载目录
+     */
     private File outputDir;
 
     public PageDownloadTask(PagePreviewer previewer, File outputDir) {
@@ -38,11 +37,22 @@ public class PageDownloadTask {
         this.outputDir = outputDir;
     }
 
-    private static final String INDEX_PAGE = "http://www.tenholes.com";
+    public static final String INDEX_PAGE = "http://www.tenholes.com";
 
     public void download(String pageUrl) {
-        // 下载完整页面，转换成 dom
-        String html = previewer.getPagePreview(pageUrl);
+        System.out.println("> 开始下载：" + pageUrl);
+
+        String html = previewer.getPagePreview(pageUrl, driver -> {
+            try {
+                WebElement video = driver.findElement(By.tagName("video"));
+                String src = video.getDomAttribute("src");
+                // video 的链接存在则说明页面加载完毕
+                return StringUtils.isNotBlank(src);
+            } catch (NoSuchElementException e) {
+                // 无 video 元素则页面直接返回
+                return true;
+            }
+        });
         Document doc = Jsoup.parse(html);
 
         // 下载页面媒体资源
@@ -60,7 +70,7 @@ public class PageDownloadTask {
             }
 
             File outputFile = new File(outputDir, filename);
-            CompletableFuture<Void> completableFuture = asyncDownload(src, outputFile,
+            CompletableFuture<Void> completableFuture = Downloader.asyncDownload(src, outputFile,
                     (unused) -> media.attr("src", "./" + filename));
 
             completableFutures.add(completableFuture);
@@ -74,7 +84,8 @@ public class PageDownloadTask {
         );
 
         // 将修改后的文件保存到本地
-        CompletableFuture<Void> completableFuture = CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
+        CompletableFuture<Void> completableFuture = CompletableFuture.allOf(
+                completableFutures.toArray(new CompletableFuture[0]))
                 .whenComplete((unused, e) -> {
                     if (Objects.nonNull(e)) {
                         e.printStackTrace();
@@ -110,57 +121,6 @@ public class PageDownloadTask {
         return src.substring(dotIndex + 1, questionIndex);
     }
 
-    private CompletableFuture<Void> asyncDownload(String url, File outputFile, Consumer<String> doneCallback) {
-        final CompletableFuture<Void> result = new CompletableFuture<>();
-        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(Timeout.ofSeconds(5))
-                .build();
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
-                .setIOReactorConfig(ioReactorConfig)
-                .build();
-
-        client.start();
-
-        final SimpleHttpRequest request = SimpleRequestBuilder.get()
-                .setUri(url)
-                .build();
-        client.execute(
-                SimpleRequestProducer.create(request),
-                SimpleResponseConsumer.create(),
-                new FutureCallback<>() {
-                    @Override
-                    public void completed(final SimpleHttpResponse response) {
-                        if (new StatusLine(response).getStatusCode() != 200) {
-                            System.err.println("下载 " + url + " 文件失败");
-                        }
-
-                        try {
-                            FileOutputStream outputStream = new FileOutputStream(outputFile);
-                            outputStream.write(response.getBodyBytes());
-
-                            doneCallback.accept(outputFile.getName());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        result.complete(null);
-                    }
-
-                    @Override
-                    public void failed(final Exception ex) {
-                        result.completeExceptionally(ex);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        result.complete(null);
-                    }
-
-                });
-
-        return result;
-    }
-
     private void saveHtml(File file, Document doc) {
         try (OutputStreamWriter writer =
                      new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
@@ -168,15 +128,5 @@ public class PageDownloadTask {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        String authToken = "xxx";
-        PagePreviewer pagePreviewer = new PagePreviewer(INDEX_PAGE, authToken);
-        PageDownloadTask task = new PageDownloadTask(pagePreviewer, new File("/Users/zxw/Desktop/test1"));
-
-        task.download("http://www.tenholes.com/lessons/view?id=180");
-
-        pagePreviewer.close();
     }
 }
