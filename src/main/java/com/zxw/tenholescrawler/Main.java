@@ -11,8 +11,10 @@ import java.util.concurrent.CompletableFuture;
 public class Main {
 
     public static void main(String[] args) {
-        String authToken = System.getProperty("tenholes.crawler.authToken");
-        String outputDir = System.getProperty("tenholes.crawler.outputDir");
+        // 输出目录
+        String outputDir = args[0];
+        // 身份验证 token
+        String authToken = args[1];
         List<String> crawlingListPageUrls = Arrays.asList(
                 "http://www.tenholes.com/lessons/list?cid=3",
                 "http://www.tenholes.com/lessons/list?cid=15",

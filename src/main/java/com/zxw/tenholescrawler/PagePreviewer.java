@@ -24,9 +24,8 @@ public class PagePreviewer {
     private void init(String indexPage, String authToken) {
         // 初始化 webDriver
         // 设置系统变量，用于后续找到 driver 位置
-//        final String driverPath = "./resources/chromedriver_mac_arm64/chromedriver";
-        final String driverPath = "/Users/zxw/ideaworkspace/tenholes-crawler/src/main/resources/chromedriver_mac_arm64/chromedriver";
-        final String absoluteDriverPath = new File(driverPath).getAbsolutePath();
+        final String absoluteDriverPath = PagePreviewer.class
+                .getResource("/chromedriver_mac_arm64/chromedriver").getPath();
         System.setProperty("webdriver.chrome.driver", absoluteDriverPath);
 
         ChromeOptions chromeOptions = new ChromeOptions();
