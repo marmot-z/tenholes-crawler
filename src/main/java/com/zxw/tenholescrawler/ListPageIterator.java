@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 
+import static com.zxw.tenholescrawler.ListPageDownloadTask.TASK_THREAD_LOCAL;
 import static com.zxw.tenholescrawler.PageDownloadTask.INDEX_PAGE;
 
 public class ListPageIterator implements Iterator<Element> {
@@ -65,7 +66,7 @@ public class ListPageIterator implements Iterator<Element> {
     }
 
     private Iterator<Element> getListPageItems() {
-        System.out.println("> 开始查找新页面：" + listPageUrl);
+        System.out.println("> [" + TASK_THREAD_LOCAL.get() + "] 开始查找新页面：" + listPageUrl);
 
         // 获取页面内容
         String html = pagePreviewer.getPagePreview(listPageUrl, webDriver -> true/*无须等待页面加载动态效果*/);

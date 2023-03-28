@@ -21,8 +21,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static com.zxw.tenholescrawler.ListPageDownloadTask.TASK_THREAD_LOCAL;
+
 public class PageDownloadTask {
 
+    /**
+     * 下载页面 url
+     */
+    private String pageUrl;
     /**
      * 页面 previewer，用于加载完整的页面
      */
@@ -32,15 +38,16 @@ public class PageDownloadTask {
      */
     private File outputDir;
 
-    public PageDownloadTask(PagePreviewer previewer, File outputDir) {
+    public PageDownloadTask(String pageUrl, PagePreviewer previewer, File outputDir) {
+        this.pageUrl = pageUrl;
         this.previewer = previewer;
         this.outputDir = outputDir;
     }
 
     public static final String INDEX_PAGE = "http://www.tenholes.com";
 
-    public void download(String pageUrl) {
-        System.out.println("> 开始下载：" + pageUrl);
+    public void download() {
+        System.out.println("> [" + TASK_THREAD_LOCAL.get() + "] 开始下载：" + pageUrl);
 
         String html = previewer.getPagePreview(pageUrl, driver -> {
             try {

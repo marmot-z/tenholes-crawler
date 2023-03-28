@@ -10,6 +10,8 @@ import static com.zxw.tenholescrawler.PageDownloadTask.INDEX_PAGE;
 
 public class ListPageDownloadTask {
 
+    public static final ThreadLocal<String> TASK_THREAD_LOCAL = new ThreadLocal<>();
+
     /**
      * webDriver 不是线程安全的，所以为每个线程创建私有的 previewer<br>
      * previewer 虽然被多个对象共享，但实际运行过程中是串行运行的，所以不存在线程安全问题
@@ -33,29 +35,34 @@ public class ListPageDownloadTask {
             return Objects.equals(className, "vip1");
         }, pagePreviewer);
         this.outputDir = outputDir;
+
+        TASK_THREAD_LOCAL.set(listPageUrl.substring(INDEX_PAGE.length()));
     }
 
     public void download() {
-        while (iterator.hasNext()) {
-            Element anchor = iterator.next().selectFirst("a");
-            String href = anchor.attr("href");
+        try {
+            while (iterator.hasNext()) {
+                Element anchor = iterator.next().selectFirst("a");
+                String href = anchor.attr("href");
 
-            if (!href.startsWith("http")) {
-                href = INDEX_PAGE + href;
+                if (!href.startsWith("http")) {
+                    href = INDEX_PAGE + href;
+                }
+
+                File pageOutputDir = new File(outputDir, StringUtils.trim(anchor.text()));
+                pageOutputDir.mkdirs();
+
+                PageDownloadTask pageDownloadTask = new PageDownloadTask(href, pagePreviewer, pageOutputDir);
+                try {
+                    pageDownloadTask.download();
+                } catch (Exception e) {
+                    System.err.println("下载 " + href + " 页面失败");
+                    e.printStackTrace();
+                }
             }
-
-            File pageOutputDir = new File(outputDir, StringUtils.trim(anchor.text()));
-            pageOutputDir.mkdirs();
-
-            PageDownloadTask pageDownloadTask = new PageDownloadTask(pagePreviewer, pageOutputDir);
-            try {
-                pageDownloadTask.download(href);
-            } catch (Exception e) {
-                System.err.println("下载 " + href + " 页面失败");
-                e.printStackTrace();
-            }
+        } finally {
+            pagePreviewer.close();
+            TASK_THREAD_LOCAL.remove();
         }
-
-        pagePreviewer.close();
     }
 }
