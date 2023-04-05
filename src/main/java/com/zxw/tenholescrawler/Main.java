@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
@@ -43,6 +44,15 @@ public class Main {
             downloadFuture.join();
         }
 
-        System.out.println("============ 结束下载页面，耗时: " + stopWatch.getStopTime() + "ms ============");
+        System.out.println("============ 结束下载页面，耗时: " + stopWatch.getTime() + "ms ============");
+
+        // 线程池销毁
+        try {
+            ThreadPools.CRAWLER_THREAD_POOL.shutdown();
+            ThreadPools.CRAWLER_THREAD_POOL.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            System.err.println("线程池销毁等待超时（10s），退出程序");
+            e.printStackTrace();
+        }
     }
 }
